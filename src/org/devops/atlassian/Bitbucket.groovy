@@ -50,6 +50,36 @@ class Bitbucket extends Atlassian_Basic {
                         [
                                 "type"   : "pull-request-only",
                                 "matcher": [
+                                        "id"       : "master",
+                                        "displayId": "master",
+                                        "type"     : [
+                                                "id": "PATTERN",
+                                        ],
+                                ],
+                        ],
+                        [
+                                "type"   : "fast-forward-only",
+                                "matcher": [
+                                        "id"       : "master",
+                                        "displayId": "master",
+                                        "type"     : [
+                                                "id": "PATTERN",
+                                        ],
+                                ],
+                        ],
+                        [
+                                "type"   : "no-deletes",
+                                "matcher": [
+                                        "id"       : "master",
+                                        "displayId": "master",
+                                        "type"     : [
+                                                "id": "PATTERN",
+                                        ],
+                                ],
+                        ],
+                        [
+                                "type"   : "pull-request-only",
+                                "matcher": [
                                         "id"       : "release/*",
                                         "displayId": "release/*",
                                         "type"     : [

@@ -69,21 +69,45 @@ pipeline {
                 script {
                     env.issue_id = payload_json["issue"]["id"]
                     env.issue_key = payload_json["issue"]["key"]
+                    env.issue_type_id = payload_json["issue"]["fields"]["issuetype"]["id"]
 
-                    jira.init_issue(env.issue_id)
+                    jira.issue_id_init(env.issue_id)
 
                     switch (env.hook_event) {
                         case "jira:issue_created":
-                            utils.info("issue_created")
-                            def issue_comment = ""
-                            for (item in payload_json["issue"]["fields"]["components"]) {
-                                // ensure repo exist
-                                def repo_url = bitbucket.project_repo_url_fetch(item["name"])
+                            utils.info("issue_created ${env.issue_type_id} -> ${env.issue_id}")
 
-                                issue_comment += "\n module ${item['name']} -> [${item['name']}|${repo_url['http']}]"
+                            def v_issue_comment = ""
+                            def v_issue_component_cache = payload_json["issue"]["fields"]["components"]
+                            def v_issue_version_cache = payload_json["issue"]["fields"]["fixVersions"]
+                            def v_git_branch_prefix = jira.issue_type[env.issue_type_id]["branch_prefix"]
+                            def v_git_branch_name = "${v_git_branch_prefix}/${env.issue_key}"
+
+                            for (item_component in v_issue_component_cache) {
+                                // ensure repo exist
+                                def repo_uri = bitbucket.project_repo_url_fetch(item_component["name"])
+                                v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}]"
+
+                                for (item_version in v_issue_version_cache) {
+                                    // create bugfix branch from release branch
+                                    bitbucket.project_repo_branch_create(item_component["name"], v_git_branch_name, "release/${item_version['name']}")
+
+                                    // insert bugfix git branch fetch cmd
+                                    v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}] fix version -> ${item_version['name']}"
+                                    v_issue_comment += """
+{code:bash}
+# git clone
+git clone --branch ${v_git_branch_name} ${repo_uri['ssh']}
+
+# git checkout
+git checkout ${v_git_branch_name}
+{code}
+"""
+                                }
+
                             }
 
-                            jira.issue_comment("接管成功 \n ${issue_comment}")
+                            jira.issue_comment("接管成功 \n ${v_issue_comment}")
                             break
 
                         case "jira:issue_updated":

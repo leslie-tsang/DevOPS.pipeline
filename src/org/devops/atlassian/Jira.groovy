@@ -1,15 +1,23 @@
 package org.devops.atlassian
 
 class Jira extends Atlassian_Basic {
+    public final issue_type
     private String _issue_id
 
     Jira(_this, basic_issue_url, auth_credential_id) {
         super(_this, basic_issue_url, auth_credential_id, [
                 "api": "2",
         ])
+
+        this.issue_type = [
+                "10000": ["type": "Epic", "branch_prefix": "release"],
+                "10001": ["type": "Story", "branch_prefix": ""],
+                "10002": ["type": "Task", "branch_prefix": "feature"],
+                "10100": ["type": "Bug", "branch_prefix": "bugfix"],
+        ]
     }
 
-    def init_issue(issue_id) {
+    def issue_id_init(issue_id) {
         this._issue_id = issue_id
     }
 
