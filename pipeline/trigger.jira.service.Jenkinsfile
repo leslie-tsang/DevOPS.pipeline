@@ -16,6 +16,7 @@ pipeline {
     }
 
     options {
+        buildDiscarder(logRotator(numToKeepStr: '4096')) // maximum build record reserve
         quietPeriod(0)                  // disable global quietPeriod
         skipDefaultCheckout()           // disable default scm checkout behavior
         timeout(time: 1, unit: 'HOURS') // pipeline time 1 hour
@@ -23,7 +24,7 @@ pipeline {
     }
 
     triggers {
-        GenericTrigger(causeString: 'Generic Cause',
+        GenericTrigger(causeString: 'Generic Cause - WebHook',
                 genericVariables: [
                         [defaultValue: '', key: 'webhook_payload', regexpFilter: '', value: '$'],
                 ],
@@ -84,25 +85,28 @@ pipeline {
                             def v_git_branch_name = "${v_git_branch_prefix}/${env.issue_key}"
 
                             for (item_component in v_issue_component_cache) {
-                                // ensure repo exist
+                                // fetch repo info and ensure repo exist
                                 def repo_uri = bitbucket.project_repo_url_fetch(item_component["name"])
-                                v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}]"
 
+                                // create component dev branch
+                                if (v_issue_version_cache.size() == 0) {
+                                    // create bugfix branch from release branch
+                                    bitbucket.project_repo_branch_create(item_component["name"], v_git_branch_name, "master")
+
+                                    // insert git branch fetch cmd
+                                    v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}]"
+                                    v_issue_comment += jira.issue_comment_git_info_printf(repo_uri["ssh"], v_git_branch_name)
+                                    continue
+                                }
+
+                                // create hotfix release branch
                                 for (item_version in v_issue_version_cache) {
                                     // create bugfix branch from release branch
                                     bitbucket.project_repo_branch_create(item_component["name"], v_git_branch_name, "release/${item_version['name']}")
 
-                                    // insert bugfix git branch fetch cmd
+                                    // insert git branch fetch cmd
                                     v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}] fix version -> ${item_version['name']}"
-                                    v_issue_comment += """
-{code:bash}
-# git clone
-git clone --branch ${v_git_branch_name} ${repo_uri['ssh']}
-
-# git checkout
-git checkout ${v_git_branch_name}
-{code}
-"""
+                                    v_issue_comment += jira.issue_comment_git_info_printf(repo_uri["ssh"], v_git_branch_name)
                                 }
 
                             }

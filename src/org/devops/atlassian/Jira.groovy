@@ -32,6 +32,18 @@ class Jira extends Atlassian_Basic {
         return this._http_req("api", "issue/${this._issue_id}/comment", http_payload)
     }
 
+    def issue_comment_git_info_printf(repo_uri, repo_branch) {
+        return """
+{code:bash}
+# git clone
+git clone --branch ${repo_branch} ${repo_uri}
+
+# git checkout
+git checkout ${repo_branch}
+{code}
+"""
+    }
+
     def issue_worklog(comment) {
         def http_payload = [
                 method: "POST",
