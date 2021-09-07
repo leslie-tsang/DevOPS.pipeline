@@ -10,10 +10,10 @@ class Jira extends Atlassian_Basic {
         ])
 
         this.issue_type = [
-                "10000": ["type": "Epic", "branch_prefix": "release"],
-                "10001": ["type": "Story", "branch_prefix": ""],
-                "10002": ["type": "Task", "branch_prefix": "feature"],
-                "10100": ["type": "Bug", "branch_prefix": "bugfix"],
+                "10307": ["type": "Epic", "branch_prefix": "release"],
+                "10315": ["type": "Story", "branch_prefix": ""],
+                "10318": ["type": "Task", "branch_prefix": "feature"],
+                "10303": ["type": "Bug", "branch_prefix": "bugfix"],
         ]
     }
 

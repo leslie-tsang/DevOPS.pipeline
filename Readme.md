@@ -47,6 +47,7 @@ Dependence
 |           HTTP Request            | ☑️    | pipeline http request support                                |
 |      Pipeline Utility Steps       | ☑️    | add readJSON writeJSON support                               |
 |        SSH Pipeline Steps         | ☑️    | SSH cmd support                                              |
+|       Configuration as Code       | ☑️    | SSH cmd support                                              |
 
 [Back to TOC](#table-of-contents)
 

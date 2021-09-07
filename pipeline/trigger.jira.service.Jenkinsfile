@@ -70,7 +70,8 @@ pipeline {
                 script {
                     env.issue_id = payload_json["issue"]["id"]
                     env.issue_key = payload_json["issue"]["key"]
-                    env.issue_type_id = payload_json["issue"]["fields"]["issuetype"]["id"]
+                    // use avatarId instead of id to avoid unexpected issue type
+                    env.issue_type_id = payload_json["issue"]["fields"]["issuetype"]["avatarId"]
 
                     jira.issue_id_init(env.issue_id)
 
@@ -86,7 +87,7 @@ pipeline {
 
                             for (item_component in v_issue_component_cache) {
                                 // fetch repo info and ensure repo exist
-                                def repo_uri = bitbucket.project_repo_url_fetch(item_component["name"])
+                                def repo_uri = bitbucket.project_repo_uri_fetch(item_component["name"])
 
                                 // create component dev branch
                                 if (v_issue_version_cache.size() == 0) {

@@ -135,12 +135,12 @@ class Bitbucket extends Atlassian_Basic {
         return this._http_req("api", "projects/${this._project_key}/repos/${repo_name}", http_payload)
     }
 
-    def project_repo_url_fetch(repo_name) {
+    def project_repo_uri_fetch(repo_name) {
         def ret = [:]
         def http_resp = this.project_repo_fetch(repo_name)
 
         if (http_resp.status == 404) {
-            // not exist
+            // repo not exist
             http_resp = this.project_repo_create(repo_name)
         }
 
@@ -217,6 +217,49 @@ class Bitbucket extends Atlassian_Basic {
         for (item in http_resp_search_response['values']) {
             this._http_req("branch-permissions", "projects/${this._project_key}/repos/${repo_name}/restrictions/${item['id']}", [method: "DELETE"])
         }
+    }
+
+    def project_repo_branch_pull_request(repo_name, branch_src, branch_dest, description = "") {
+        def http_payload = [
+                method      : "POST",
+                content_type: "application/json",
+                body        : this._this.writeJSON(returnText: true, json: [
+                        "title"      : "PR - ${branch_src} -> ${branch_dest}",
+                        "description": description,
+                        "state"      : "OPEN",
+                        "open"       : true,
+                        "closed"     : false,
+                        "fromRef"    : [
+                                "id"        : "refs/heads/${branch_src}",
+                                "repository": [
+                                        "slug"   : repo_name,
+                                        "name"   : null,
+                                        "project": [
+                                                "key": this._project_key
+                                        ],
+                                ],
+                        ],
+                        "toRef"      : [
+                                "id"        : "refs/heads/${branch_dest}",
+                                "repository": [
+                                        "slug"   : repo_name,
+                                        "name"   : null,
+                                        "project": [
+                                                "key": this._project_key
+                                        ],
+                                ],
+                        ],
+                        "locked"     : false,
+                        "reviewers"  : [
+                                [
+                                        "user": [
+                                                "name": "cisco"
+                                        ]
+                                ]
+                        ]
+                ]),
+        ]
+        return this._http_req("api", "projects/${this._project_key}/repos/${repo_name}/pull-requests", http_payload)
     }
 
 }
