@@ -10,6 +10,7 @@ class Jira extends Atlassian_Basic {
         ])
 
         this.issue_type = [
+                null   : ["type": "Empty", "branch_prefix": ""],
                 "10307": ["type": "Epic", "branch_prefix": "release"],
                 "10315": ["type": "Story", "branch_prefix": ""],
                 "10318": ["type": "Task", "branch_prefix": "feature"],
@@ -39,6 +40,7 @@ class Jira extends Atlassian_Basic {
 git clone --branch ${repo_branch} ${repo_uri}
 
 # git checkout
+git fetch
 git checkout ${repo_branch}
 {code}
 """

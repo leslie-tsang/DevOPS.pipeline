@@ -2,8 +2,9 @@ package org.devops.atlassian
 
 class Bitbucket extends Atlassian_Basic {
     private _project_key
+    private _auth_credential_ssh_id
 
-    Bitbucket(_this, basic_uri, auth_credential_id) {
+    Bitbucket(_this, basic_uri, auth_credential_id, auth_credential_ssh_id) {
         super(_this, basic_uri, auth_credential_id, [
                 "access-tokens"     : "1.0",
                 "api"               : "1.0",
@@ -22,7 +23,7 @@ class Bitbucket extends Atlassian_Basic {
                 "ssh"               : "1.0",
                 "sync"              : "1.0",
         ])
-
+        this._auth_credential_ssh_id = auth_credential_ssh_id
     }
 
     def project_key_init(project_key) {
@@ -138,13 +139,14 @@ class Bitbucket extends Atlassian_Basic {
     def project_repo_uri_fetch(repo_name) {
         def ret = [:]
         def http_resp = this.project_repo_fetch(repo_name)
+        def project_repo_exist = http_resp.status == 404
 
-        if (http_resp.status == 404) {
+        if (project_repo_exist) {
             // repo not exist
             http_resp = this.project_repo_create(repo_name)
         }
 
-        def http_resp_json = this._this.readJSON text: http_resp.content
+        def http_resp_json = this._this.readJSON(text: http_resp.content)
 
         // reformat data struct
         for (item in http_resp_json['links']['clone']) {
@@ -158,9 +160,26 @@ class Bitbucket extends Atlassian_Basic {
             }
         }
 
+        if (project_repo_exist) {
+            // init new repo default branch
+            this.project_repo_push_init(ret["ssh"])
+        }
+
         return ret
     }
 
+    def project_repo_push_init(repo_uri) {
+        this._this.sshagent([this._auth_credential_ssh_id]) {
+            this._this.sh("""
+git clone ${repo_uri} && cd "\$(basename "${repo_uri}" .git)"
+echo ".idea" > .gitignore
+echo "*.DS_Store" >> .gitignore
+git add .gitignore
+git commit -m '[Init]'
+git push -f --set-upstream origin master
+""")
+        }
+    }
 
     def project_repo_branch_create(repo_name, branch_name, branch_name_source = "master") {
         def http_payload = [
@@ -212,7 +231,7 @@ class Bitbucket extends Atlassian_Basic {
     def project_repo_branch_permission_clean(repo_name, branch_name) {
         def http_resp_search = this._http_req("branch-permissions", "projects/${this._project_key}/repos/${repo_name}/restrictions?type=read-only&matcherType=BRANCH&matcherId=refs/heads/${branch_name}", [method: "GET"])
 
-        def http_resp_search_response = this._this.readJSON text: http_resp_search.content
+        def http_resp_search_response = this._this.readJSON(text: http_resp_search.content)
 
         for (item in http_resp_search_response['values']) {
             this._http_req("branch-permissions", "projects/${this._project_key}/repos/${repo_name}/restrictions/${item['id']}", [method: "DELETE"])

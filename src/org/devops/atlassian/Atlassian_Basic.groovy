@@ -31,6 +31,4 @@ class Atlassian_Basic implements Serializable {
 
         return _http_resp
     }
-
 }
-

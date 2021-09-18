@@ -1,10 +1,10 @@
 #!groovy
 
-@Library('devops@dev')
+@Library('devops')
 import org.devops.*
 
 def jira = new atlassian.Jira(this, "http://issue.example.com", 'devops_auth_bot')
-def bitbucket = new atlassian.Bitbucket(this, "http://git.example.com", 'devops_auth_bot')
+def bitbucket = new atlassian.Bitbucket(this, "http://git.example.com", 'devops_auth_bot', "devops_auth_ssh")
 def utils = new utils.Utils(this)
 
 
@@ -53,6 +53,9 @@ pipeline {
 
                     // init DevOPS git project setting
                     bitbucket.project_key_init(project_key)
+
+                    // clean up workspace
+                    cleanWs()
                 }
             }
         }
@@ -83,7 +86,7 @@ pipeline {
                             def v_issue_component_cache = payload_json["issue"]["fields"]["components"]
                             def v_issue_version_cache = payload_json["issue"]["fields"]["fixVersions"]
                             def v_git_branch_prefix = jira.issue_type[env.issue_type_id]["branch_prefix"]
-                            def v_git_branch_name = "${v_git_branch_prefix}/${env.issue_key}"
+                            def v_git_branch_name = v_git_branch_prefix == "" ? "master" : "${v_git_branch_prefix}/${env.issue_key}"
 
                             for (item_component in v_issue_component_cache) {
                                 // fetch repo info and ensure repo exist
@@ -97,6 +100,7 @@ pipeline {
                                     // insert git branch fetch cmd
                                     v_issue_comment += "\nmodule [${item_component['name']}|${repo_uri['http']}]"
                                     v_issue_comment += jira.issue_comment_git_info_printf(repo_uri["ssh"], v_git_branch_name)
+
                                     continue
                                 }
 
@@ -269,11 +273,12 @@ pipeline {
     post {
         always {
             script {
-                if(env.hook_event == "jira:issue_created"){
-                    mail(subject: "DevOPS - Auto report - ${env.issue_key}",
-                        to: "${payload_json["user"]["emailAddress"]}",
-                        body: "report email\n title: ${payload_json['issue']['fields']['summary']}\n ${currentBuild.description} \n")
-                }
+                utils.info("post stage")
+//                 if(env.hook_event == "jira:issue_created"){
+//                     mail(subject: "DevOPS - Auto report - ${env.issue_key}",
+//                         to: "${payload_json["user"]["emailAddress"]}",
+//                         body: "report email\n title: ${payload_json['issue']['fields']['summary']}\n ${currentBuild.description} \n")
+//                 }
             }
         }
     }

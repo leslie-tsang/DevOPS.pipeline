@@ -11,7 +11,7 @@ class Utils implements Serializable {
         _this.println(msg)
     }
 
-    static def http_req(_script, req) {
+    static def http_req(_script, req, req_valid_response_code = "100:999") {
         /*
             req = [
                 method: "POST",
@@ -36,7 +36,7 @@ class Utils implements Serializable {
                 consoleLogResponseBody: true,
                 ignoreSslErrors: true,
                 requestBody: req.body,
-                validResponseCodes: '100:999',
+                validResponseCodes: req_valid_response_code,
                 url: req.uri,
         )
 

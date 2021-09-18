@@ -36,7 +36,7 @@ Dependence
 | :-------------------------------: | ---- | :----------------------------------------------------------- |
 |            Blue Ocean             | ☑️    | UI                                                           |
 |          Docker Pipeline          | ☑️    |                                                              |
-|           GitLab Plugin           |      | Allows GitLab to launch Jenkins pipeline and display their results in the GitLab UI. |
+|           GitLab Plugin           | ☑️    | Allows GitLab to launch Jenkins pipeline and display their results in the GitLab UI. |
 |         Publish Over SSH          | ☑️    | Send build artifacts over SSH                                |
 |          Version Number           | ☑️    | Format building package version                              |
 |      Embeddable Build Status      | ☑️    | Show building status                                         |
@@ -47,7 +47,8 @@ Dependence
 |           HTTP Request            | ☑️    | pipeline http request support                                |
 |      Pipeline Utility Steps       | ☑️    | add readJSON writeJSON support                               |
 |        SSH Pipeline Steps         | ☑️    | SSH cmd support                                              |
-|       Configuration as Code       | ☑️    | SSH cmd support                                              |
+|             SSH Agent             | ☑️    | SSH Agnet support                                            |
+|       Configuration as Code       | ☑️    |                                                              |
 
 [Back to TOC](#table-of-contents)
 
